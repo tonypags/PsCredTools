@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>PsCredTools</id>
+    <version>0.3.0.4</version>
+    <authors>Tony Pagliaro</authors>
+    <owners>Tony Pagliaro</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>Tools for automating credentials safely in PowerShell.
+    </summary>
+    <description>This PowerShell Module will allow a user to work with (test, store, and retreive, etc.) windows credentials in an XML file. By Default the file will be located under the user's profile. The credential XML file exports will only work for the user who created the file, and only on the computer where the file was created. </description>
+    <releaseNotes>
+      0.1.1.0 Added function to Test a cred.
+      0.1.5.2 Added XML file self-heal functionality.
+      0.2.5.3 Functions to files in prep for CI/CD. Renamed Functions in repair family.
+      0.3.0.4 - Some function parameters renamed. Cleaned up code for public. 
+    </releaseNotes>
+    <copyright>Copyright 2020</copyright>
+    <tags>Credential SecureString AutoAuth</tags>
+    <dependencies></dependencies>
+  </metadata>
+</package>
