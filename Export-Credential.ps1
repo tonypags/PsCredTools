@@ -9,22 +9,26 @@ function Export-Credential {
     Location of the XML file with the stored credential
     .PARAMETER Credential
     The PsCredential object to store in a file
-    .PARAMETER Quiet
-    Suppresses any errors or warning messages
-    .PARAMETER ShowConfirm
-
+    .PARAMETER Force
+    Overwrites the file if it exists
+    .PARAMETER PassThru
+    Outputs a FileInfo object to the pipeline representing the new file
     .EXAMPLE
-
+    Get-Credential | Export-Credential
+    Prompts the user for a credential and stores it under the default location.
     #>
     
-    [CmdletBinding(DefaultParameterSetName='ShowConfirm')]
+    [CmdletBinding()]
     param (
 
+        # Location of the XML file with the stored credential
         [Parameter(Position=0,
             ValueFromPipelineByPropertyName=$true)]
+        [ValidatePattern('.*\.xml$')]
         [string]
         $Path=(Resolve-CredFilePath),
 
+        # The PsCredential object to store in a file
         [Parameter(Mandatory=$true,
             Position=1,
             ValueFromPipelineByPropertyName=$true,
@@ -33,19 +37,12 @@ function Export-Credential {
         [Alias('PSCredential')]
         $Credential,
         
-        [Parameter(ParameterSetName='Quiet')]
-        [switch]
-        $Quiet,
-        
-        # Default set has no logic but will require user interaction in many cases
-        [Parameter(ParameterSetName='ShowConfirm')]
-        [switch]
-        $ShowConfirm,
-        
+        # Overwrites the file if it exists
         [Parameter()]
         [switch]
         $Force,
         
+        # Outputs a FileInfo object to the pipeline representing the new file
         [Parameter()]
         [switch]
         $PassThru
@@ -55,69 +52,58 @@ function Export-Credential {
     begin {}
 
     process {
+
+        Foreach ($Cred in $Credential) {
+
+            # Before we attempt to create a file, we check for an existing one with the same name
+            if (Test-Path $Path -ErrorAction SilentlyContinue) {
+                
+                if ($Force) {
+                    
+                    # The file already exists, remove it
+                    $Path | Remove-Item -Force
+                    Write-Verbose "Existing file deleted."
+                    
+                } else {
+                    
+                    # This should prompt the user for confirmation before deleting the file.
+                    $Path | Remove-Item
+                    if (Test-Path $Path) {
+                        
+                        $thisFile = Split-Path $Path -Leaf
+                        $thisPath = Split-Path $Path -Parent
+                        Write-Warning "The file '$thisFile' already exists under folder '$thisPath'." 
+                        Write-Verbose "Please re-run this command with the '-Force' parameter or chose a different file."
+
+                    }
+
+                }#END if ($Force)
+
+            }#END if ($FileExists -and $isXmlFile)
+
+
+            # Now we create the file
+            Try {
+            
+                $Cred | Export-Clixml -Path $Path -ErrorAction Stop
+            
+            } Catch {
         
-        $FileExists = Test-Path $Path -ErrorAction SilentlyContinue
-        $isXmlFile = Test-Path $Path -Include *.xml
-
-        if ($isXmlFile) {
-            if ($Force) {
-                $Path | Remove-Item -Force
-                Write-Verbose "Existing file deleted."
-            } elseif ($Quiet) {
-                throw "The supplied Path already exists."
-            } else { #This is the ShowConfirm section
-                $Path | Remove-Item -Confirm:$true
-                if (Test-Path $Path -Include *.xml) {
-                    throw "The file '$(
-                        Split-Path $Path -Leaf
-                    )' already exists under folder '$(
-                        Split-Path $Path -Parent
-                    )'. Please re-run this command with the '-Force' $(
-                    )parameter or chose a different file."
-                }#if (Test-Path $Path -Include *.xml)
-            }#if ($Force)
-        } elseif ($FileExists) {
-            if ($Force) {
-                throw "The file '$(
-                    Split-Path $Path -Leaf
-                )' already exists under folder '$(
-                    Split-Path $Path -Parent
-                )' but it is not an XML file! $(
-                )Choose a different file."
-            }#if ($Force)
-        } else {
-            # No File exists then we can create one OK
-        }#if ($FileExists -and $isXmlFile)
-
-
-        Try {
+                throw "The credential could not be exported: $($_.Exception.Message)"
         
-            $ExportSplat = @{
-                Path = $Path
-                ErrorAction = 'Stop'
             }
-            $Credential |
-                Export-Clixml @ExportSplat
+
+
+            if ($PassThru) {
         
-        } Catch {
-    
-            if ($Quiet) {
-                throw "The supplied Credential object could not be exported."
-            } else {
-                throw $_
-            }#if ($Quiet)
-    
-        }#Try{Import-Clixml -Path $Path
+                Get-Item $Path
+        
+            }
 
-
-        if ($PassThru) {
-    
-            Get-Item $Path
-    
-        }
+        }#END Foreach ($Cred in $Credential)
     
     }
 
     end {}
 
-}
+}#END function Export-Credential {
