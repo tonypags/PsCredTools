@@ -21,12 +21,12 @@ function Resolve-CredFilePath {
 
     The default result is your username as the filename.
     .EXAMPLE
-    Resolve-CredFilePath -Username username -CredTag mysql1 -Delimiter '_'
+    Resolve-CredFilePath -Username username -Tag mysql1 -Delimiter '_'
     C:\Users\myUserName\Documents\WindowsPowerShell\Credentials\username_mysql1.xml
 
     The simple parameters were used to create a predictable, repeatable filename. 
     .EXAMPLE
-    Resolve-CredFilePath -Username $env:USERNAME -CredTag 'FtpServer' -Delimiter '_'
+    Resolve-CredFilePath -Username $env:USERNAME -Tag 'FtpServer' -Delimiter '_'
     C:\Users\myUserName\Documents\WindowsPowerShell\Credentials\myUserName_FtpServer.xml
 
     The env variable is used to run the same command on different users 
@@ -53,7 +53,7 @@ function Resolve-CredFilePath {
         # Filename, must end in ".xml" (no full paths, hard-coded location in profile folder)
         [Parameter(Mandatory=$true,
                     ParameterSetName='FileName')]
-        [ValidatePattern('^[\w\d-_]+?\.xml$')]
+        [ValidatePattern('\.xml$')]
         [string]
         $FileName,
 
