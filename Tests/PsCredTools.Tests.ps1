@@ -75,11 +75,11 @@ Describe 'Credential Tests' {
             Resolve-CredFilePath @splat | Should -Be $DomainUserXML
         }
         
-        It 'File is Viable via LiteralPath' {
+        It 'File is viable via Path' {
             # The previously made XML file will be used
             $splat=@{
-                CredFilePath = $SampleXML
-                Quiet = $true
+                Path = $SampleXML
+                NoUI = $true
             }
 
             Repair-CredFilePath @splat | Should -Be $true
